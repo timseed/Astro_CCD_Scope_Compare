@@ -129,16 +129,19 @@ When the code has finished you will see new PNG files (using M31 as an example n
 Using any image viewing software - you now can compare that the scope/ccd combinations are expected to produce. 
 
 
-## But it does not do .... 
+## But it does not take into consideration....
 
-Yes it does not care if the camera is Cooled, if it has a dew heater.
-I have a super mount - much better than .... 
-My scope has super optics.
-The CCD camera has small/large pixels - and a built in guide camera 
+  - The sensor is Cooled, if it has a dew heater.
+  - I am using mono image capture 
+  - My lense is 4F not F8 at this focal length
+  - I use a guide scope 
+  - I have a super mount - much better than .... 
+  - My scope has super optics.
+  - The CCD camera has small/large pixels - and a built in guide camera 
 
-None of these things effect the expected image size when using a focal length of X, with a Sensor size of Y. 
+None of these things effect the **expected** image size when using a focal length of X, with a Sensor size of Y. 
 
-I do not disagree the items listed will generally improve the image quality - but they will not effect the size of the expected data capture area. 
+I do not disagree the items listed previously will generally improve the image quality - but they will not effect the size of the expected data capture area. 
 
 # Thanks 
 
