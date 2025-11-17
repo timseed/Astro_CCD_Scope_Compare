@@ -9,7 +9,14 @@ This is M81, when using an SV555 and an IMX585 based CCD Camera.
 You can generate other combinations of Sensors/Lense so you may compare expected results.
 
 !["Example 2"](img/both.png)
-This shows ASKAR71 with a IMX533 on the left, compared to an SV555 and a IMX585 on the right. 
+This shows ASKAR71 with a IMX533 on the left, compared to an SV555 and a IMX585 on the right.  Here you can clearly see the differing sensor formats on the M81.
+
+But this is the same sensor - with very similar lenses.
+
+!["Example 3"](img/SV555_REDCAT51.png)
+
+Redcat51 and SV555 - on M31.
+
 
 ## Reason for this code 
 
@@ -31,64 +38,16 @@ There are essentially 3 sections
   - The Scope 
   - The Targets 
 
-### Camera/Sensor 
+  
+I now have split these into seperate files. 
 
-As many manufacturers use a same underlying CCD chip, I think it makes more sense to create a sensor which is *chip named*.
+  - Ccd.py 
+  - Scope.py 
+  - Target.py
+  
+These files are **VERY SIMPLE** data class collections. 
 
-These are the two sensors I initially put into the code - the IMX585 being an APS-C layout i.e. wider than taller. The IMX533 being a *square* format. Dimensions are in mm.
 
-```python
-
-imx585 = Camera(
-    sensor_height=6.26, sensor_width=11.14, lens_focal_length=OPTIC_LENSE, rotation=0
-)
-
-# Used in ASI 533 Pro. Square Sensor
-imx533 = Camera(
-    sensor_height=11.31, sensor_width=11.31, lens_focal_length=OPTIC_LENSE, rotation=0
-)
-```
-
-You will note these both refer to something called **OPTIC_LENSE** ... which is the next item we will explain.
-
-### Scope
-
-The OPTIC_LENSE is simply a way of informting the sensor as to the focal length of the imaging system.
-
-So this is the simple (I hope) way I have defined these items.
-
-```python
-SV555 = 243
-REDCAT51 = 250
-ASKAR71 = 490
-```
-
-Yes - that is it... those are the named focal length's of some popular wide field type scopes... if you want to add another, just create a variable and set its focal length (in mm).
-
-You then need to set a Variable to use this value( it means less messing around in the code lower down).
-
-```
-#
-# Set the Lense (See Above) to the OPTIC_LENSE
-#
-OPTIC_LENSE = SV555
-OPTIC_LENSE_STR = "SV555"
-```
-
-### Target List 
-
-The list provided in the code - are the "top 20" DSO's objects according to Google !!, I am sure you will have your own. You are free to add them - just be careful of the format in the list. 
-
-If the object can not be matched, you will be informed on screen. 
-
-```python
-    "NGC 0869 - Double Cluster",
-    "M104 - Sombrero Galaxy",
-```
-
-NGC Objects must have 4 digit codes, and a space in between the NGC and Code.
-Messier objects have no spaces.
-Please add a description, it will be used in the output file name. 
 
 ## Adding the libraries
 
@@ -102,28 +61,48 @@ However... you may need to provide the GDAL objects (used by starplot).
 
 Simple execute this command where the source file is located 
 
-    python Astro_CCD_Scope.py 
+    python Astro_CCD_Scope.py -c <CAMERA> -s <SCOPE> -t <Target> 
+    
+Examples:
+	python Astro_CCD_Scope.py -c imx585 -s <SCOPE> -t 
 
 It takes under 30s to process 20 objects on my Mac. After this you can look at the png files.
 
 ### How to Compare ??
 
-Change the definitions in the code - Say to the *Askat71* and switch sensors... i.e.
+Change the command line options
 
-    OPTIC_LENSE =ASKAR71 
-    OPTIC_LENSE_STR = "ASKAR71"
+### Try a different scope
 
-    OPTIC_CAMERA = imx533
-    OPTIC_CAMERA_STR = "imx533" 
+use 
 
-And run the code again.
+    -s or --scope <scope name> 
+  
+ You can find the list of scope names using 
+ 
+     python Astro_CCD_Scope.py --list-scopes 
+
+
+### Try a different camera/sensor 
+
+use 
+
+    -c or --camera <camera name> 
     
-    python Astro_CCD_Scope.py 
+ You can find the list of scope names using 
+ 
+     python Astro_CCD_Scope.py --list-cameras 
 
-When the code has finished you will see new PNG files (using M31 as an example named)
+### Try a different target set 
 
-    SV555_imx585_M31_ Andromeda Galaxy.png
-    ASKAR71_imx533_M31_ Andromeda Galaxy.png
+yes you guessed it 
+
+	-t or --target <target Name> 
+
+ You can find the list of scope names using 
+ 
+     python Astro_CCD_Scope.py --list-targets 
+
 
 
 Using any image viewing software - you now can compare that the scope/ccd combinations are expected to produce. 
@@ -142,6 +121,25 @@ Using any image viewing software - you now can compare that the scope/ccd combin
 None of these things effect the **expected** image size when using a focal length of X, with a Sensor size of Y. 
 
 I do not disagree the items listed previously will generally improve the image quality - but they will not effect the size of the expected data capture area. 
+
+
+# What does not work?
+
+Very wide (<300mm) and very large width Cameras cause an internal error if the amount of sky > 9.6 degrees.
+
+You will get an error message of **✖ Sorry. Field of View too large to compute**
+
+The Sony IMX455 chip is (currently) the only sensor that causes this issue, if used on something like an SV555.
+
+So this would fail 
+
+    python Astro_CCD_Scope.py -c imx455 -s SV555 -t Quick 
+
+But this will work 
+
+    python Astro_CCD_Scope.py -c imx455 -s ASKAR71F -t Quick
+    
+Becuase the scope has a longer focal length, which despite a massive sensor, makes the FOV (field of view) within bounds (phew!).
 
 # Thanks 
 

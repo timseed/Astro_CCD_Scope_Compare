@@ -20,9 +20,11 @@ class AstroCamera:
 
     def __init__(self):
         self._ccds = []
-        self._ccds.append(_ccd("imx585", 10.2, 12.2))
-        self._ccds.append(_ccd("imx533", 11.2, 11.2))
+        self._ccds.append(_ccd("imx585", 6.26, 11.14))
+        self._ccds.append(_ccd("imx533", 11.31, 11.31))
+        self._ccds.append(_ccd("imx455", 40.96, 31.10))
         self._ccds.append(_ccd("asi1200", 23.2, 12.2))
+        self._ccds.append(_ccd("asi120", 4.8, 3.6))
 
     def dump(self):
         """
