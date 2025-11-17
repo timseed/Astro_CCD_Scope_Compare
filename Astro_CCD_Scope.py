@@ -5,6 +5,131 @@ from starplot import OpticPlot, DSO, Observer, _
 from starplot.callables import color_by_bv
 from starplot.models import Refractor, Camera
 from starplot.styles import PlotStyle, extensions
+from Ccd import AstroCamera
+from Scope import AstroScope
+from Target import AstroTarget
+
+import argparse
+import sys
+
+def to_lower(value: str) -> str:
+    return value.lower()
+
+def to_upper(value: str) -> str:
+    return value.upper()
+
+def no_space(value:str) -> str:
+    return value.strip()
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Camera + Scope command-line interface"
+    )
+
+    # Required arguments
+    parser.add_argument(
+        "-c", "--camera",
+        type=to_lower,
+        required=False,
+        help="Camera name (converted to lowercase)"
+    )
+
+    parser.add_argument(
+        "-s", "--scope",
+        type=to_upper,
+        required=False,
+        help="Scope name (converted to UPPERCASE)"
+    )
+    
+    parser.add_argument(
+        "-t", "--target",
+        type=no_space,
+        required=False,
+        help="Target grouo name (converted to UPPERCASE)"
+    )
+
+    # Listing options
+    parser.add_argument(
+        "--list-cameras",
+        action="store_true",
+        help="List all supported cameras"
+    )
+
+    parser.add_argument(
+        "--list-scopes",
+        action="store_true",
+        help="List all supported scopes"
+    )
+    
+    parser.add_argument(
+        "--list-targets",
+        action="store_true",
+        help="List all supported target groups"
+    )
+
+    return parser
+
+
+def check_main()->Optinal(_ccd,_scope,_target):
+    parser = build_parser()
+    args = parser.parse_args()
+    _AC=AstroCamera()
+    _AS=AstroScope()
+    _AT=AstroTarget()
+
+    # Handle listing mode first (no required args)
+    if args.list_cameras:
+        print("Available Cameras:")
+        _AC.dump()
+        sys.exit(0)
+
+    if args.list_scopes:
+        print("Available Scopes:")
+        _AS.dump()
+        sys.exit(0)
+    
+    if args.list_targets:
+        print("Available Targets:")
+        _AT.dump()
+        sys.exit(0)
+
+    # Now enforce required parameters if not listing
+    if not args.camera or not args.scope or not args.target :
+        parser.error("Both --camera, --scope and --target are required unless listing.")
+
+    # Normal operation
+
+    # Need To get the Camera first
+    print(f"Looking up Camera = {args.camera}")
+    camera = _AC.find(args.camera)
+    if camera:
+        print(f"✔ Camera {args.camera} found")
+    else:
+        print(f"✖ Camera {args.camera} not found please --list-cameras and try check spelling.")
+        exit(0)
+
+    print(f"Scope  = {args.scope}")
+    scope = _AS.find(args.scope)
+    if scope:
+        print(f"✔ Scope {args.scope} found")
+    else:
+        print(f"✖ Scope {args.scope} not found please --list-scopes and try check spelling.")
+        exit(0)
+    
+    print(f"Target  = {args.target}")
+    target= _AT.find(args.target)
+    if target:
+        print(f"✔ Target {args.target} found")
+    else:
+        print(f"✖ Target {args.target} not found please --list-targets try check spelling.")
+        exit(0)
+    return camera,scope, target
+
+
+
+if __name__ == "__main__":
+    camera,scope,target=check_main()
+
 
 #################### Your Observing Definitions ###################
 #
@@ -22,74 +147,19 @@ observer = Observer(
 #################### SKY Clarity/Limit Definitions ###################
 #
 # These are the limits that you will see in the simulation. Alter as you need
-# My sky is aprox Bortle 4 - So Stars with naked eye are 6.1-7.0 - as a guide/guess add +5 with a scope 
+# My sky is aprox Bortle 4 - So Stars with naked eye are 6.1-7.0 - as a guide/guess add +5 with a scope
 # Adjust/alter as you see fit
 #
-STAR_LIMIT=6.1+5.0
-DSO_LIMIT=4.1+5.0 
+STAR_LIMIT = 6.1 + 5.0
+DSO_LIMIT = 4.1 + 5.0
 
-#################### LENSE Definitions ###################
-#
-# Some Entry Wide Field lenses you may be considering
-# Please add as many as you like
-SV555 = 243
-REDCAT51 = 250
-ASKAR71 = 490
+OPTIC_LENSE_STR = scope.name
 
-#
-# Set the Lense (See Above) to the OPTIC_LENSE
-#
-OPTIC_LENSE = SV555
-OPTIC_LENSE_STR = "SV555"
-#################### CAMERA Definitions ###################
-
-#
-# Camera to simulate. Again - adjust to your preference. But I suggest creating a new Name per Camera
-# It will help to minimize simple and difficult to spot mistakes.
-# Please NOTE. You tell the Camera which OPTIC_LENSE you are using also.
-#
-
-imx585 = Camera(
-    sensor_height=6.26, sensor_width=11.14, lens_focal_length=OPTIC_LENSE, rotation=0
-)
-
-# Used in ASI 533 Pro. Square Sensor
-imx533 = Camera(
-    sensor_height=11.31, sensor_width=11.31, lens_focal_length=OPTIC_LENSE, rotation=0
-)
-#
-# Set the Camera (See Above) to the OPTIC_CAMERA
-#
-OPTIC_CAMERA = imx585
-OPTIC_CAMERA_STR = "imx585"
-
-#################### TARGET Definitions ###################
-#
-# A Genieric "top 20" of DSO's - again edit/Adjust but we need to make sure there is a SPACE HYPHEN SPACE Description
-# NGC Needs 4 numbers including leading 0's
-#
-TARGET_LIST = deep_sky_objects = [
-    "M31 - Andromeda Galaxy",
-    "M42 - Orion Nebula",
-    "M45 - Pleiades",
-    "M13 - Hercules Globular Cluster",
-    "M51 - Whirlpool Galaxy",
-    "M81 - Bode's Galaxy",
-    "M82 - Cigar Galaxy",
-    "M33 - Triangulum Galaxy",
-    "M101 - Pinwheel Galaxy",
-    "M57 - Ring Nebula",
-    "M27 - Dumbbell Nebula",
-    "NGC 7000 - North America Nebula",
-    "NGC 0253 - Sculptor Galaxy",
-    "NGC 0869 - Double Cluster",
-    "M104 - Sombrero Galaxy",
-    "M20 - Trifid Nebula",
-    "M8 - Lagoon Nebula",
-    "M17 - Swan (Omega) Nebula",
-    "M4 - Globular Cluster in Scorpius",
-    "M87 - Virgo A Galaxy",
-]
+OPTIC_CAMERA = Camera(
+    sensor_height=camera.height, sensor_width=camera.width,
+    lens_focal_length=scope.focal_length, rotation=0
+) 
+OPTIC_CAMERA_STR = camera.name
 
 #################### Map Style Definitions ###################
 
@@ -110,11 +180,13 @@ style = PlotStyle().extend(
 )
 
 print("\n\nStarting simulation using")
-print(f"Scope  {OPTIC_LENSE_STR}")
-print(f"Camera {OPTIC_CAMERA_STR}")
+print(f"Scope  {scope.name}")
+print(f"Camera {camera.name}")
+print(f"Target {target.name}")
 print("")
-for t in TARGET_LIST:
+for t in target.dso:
     common_name, desc = t.split("-")
+    desc = desc.strip()
     common_name = common_name.replace(" ", "")
     if common_name.startswith("M"):
         messier = common_name.replace("M", "")
@@ -126,26 +198,30 @@ for t in TARGET_LIST:
         obj = DSO.get(name=common_name)
     if obj:
         print(f"✔ Found {common_name}")
-        p = OpticPlot(
-            ra=obj.ra,
-            dec=obj.dec,
-            observer=observer,
-            optic=OPTIC_CAMERA,
-            style=style,
-            resolution=2600,
-            # scale=0.5,
-            autoscale=True,
-            raise_on_below_horizon=False,
-        )
-        p.stars(
-            where=[_.magnitude < STAR_LIMIT], color_fn=color_by_bv, bayer_labels=True
-        )
-        p.dsos(where=[_.magnitude < DSO_LIMIT], where_labels=[False])
-        p.info()
-        p.export(
-            f"{OPTIC_LENSE_STR}_{OPTIC_CAMERA_STR}_{common_name}_{desc}.png",
-            padding=0.1,
-            transparent=True,
-        )
+        try:
+            p = OpticPlot(
+                ra=obj.ra,
+                dec=obj.dec,
+                observer=observer,
+                optic=OPTIC_CAMERA,
+                style=style,
+                resolution=2600,
+                # scale=0.5,
+                autoscale=True,
+                raise_on_below_horizon=False,
+            )
+            p.stars(
+                where=[_.magnitude < STAR_LIMIT], color_fn=color_by_bv, bayer_labels=True
+            )
+            p.dsos(where=[_.magnitude < DSO_LIMIT], where_labels=[False])
+            p.info()
+            p.export(
+                f"{OPTIC_LENSE_STR}_{OPTIC_CAMERA_STR}_{common_name}_{desc}.png",
+                padding=0.1,
+                transparent=True,
+            )
+        except ValueError:
+            print(f"✖ Sorry. Field of View too large to compute")
+
     else:
         print(f"✖ Found {common_name}")
