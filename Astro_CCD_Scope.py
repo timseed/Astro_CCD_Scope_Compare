@@ -22,11 +22,11 @@ observer = Observer(
 #################### SKY Clarity/Limit Definitions ###################
 #
 # These are the limits that you will see in the simulation. Alter as you need
-# My sky is aprox Bortle 4 - So Stars with naked eye are 6.1-7.0 - as a guide/guess add +5 with a scope 
+# My sky is aprox Bortle 4 - So Stars with naked eye are 6.1-7.0 - as a guide/guess add +5 with a scope
 # Adjust/alter as you see fit
 #
-STAR_LIMIT=6.1+5.0
-DSO_LIMIT=4.1+5.0 
+STAR_LIMIT = 6.1 + 5.0
+DSO_LIMIT = 4.1 + 5.0
 
 #################### LENSE Definitions ###################
 #
@@ -56,6 +56,9 @@ imx585 = Camera(
 # Used in ASI 533 Pro. Square Sensor
 imx533 = Camera(
     sensor_height=11.31, sensor_width=11.31, lens_focal_length=OPTIC_LENSE, rotation=0
+)
+asi12600 = Camera(
+sensor_height=23.5, sensor_width=15.7, lens_focal_length=OPTIC_LENSE, rotation=0
 )
 #
 # Set the Camera (See Above) to the OPTIC_CAMERA
@@ -115,6 +118,7 @@ print(f"Camera {OPTIC_CAMERA_STR}")
 print("")
 for t in TARGET_LIST:
     common_name, desc = t.split("-")
+    desc = desc.strip()
     common_name = common_name.replace(" ", "")
     if common_name.startswith("M"):
         messier = common_name.replace("M", "")
